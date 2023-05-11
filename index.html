@@ -130,16 +130,19 @@
             df.series.indices,
             0,
         )
+        
         // laplace.constrainsBorders(0)
-        for (let i = 0; i < 50; ++i) {
-            // laplace.addConstraint([-2 * i, 0, 0], 20)
-        }
+
+        // for (let i = 0; i < 50; ++i) {
+        //     laplace.addConstraint([-2 * i, 0, 0], 20)
+        // }
         laplace.addConstraint([0, 0, 0], 20)
         laplace.addConstraint([-15, -20, 0], -1)
         laplace.addConstraint([30, -20, 0], -3)
+        laplace.addConstraint([-30, 20, 0], 10)
         laplace.epsilon = 0.6
         laplace.eps = 1e-7
-        laplace.maxIter = 50
+        laplace.maxIter = 100
 
         table = new ColorScale()
         table.setColors([
