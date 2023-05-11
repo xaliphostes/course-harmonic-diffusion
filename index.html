@@ -1,0 +1,173 @@
+<html>
+
+<head>
+    <script src="./libs/dataframe.js"></script>
+    <script src="./libs/math.js"></script>
+    <script src="./libs/geometry.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
+
+    <style>
+        * {
+            padding: 3px;
+            margin: 1px;
+
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        class ColorScale {
+            constructor() {
+                this.colors = []
+            }
+            addColor(value, rgb) {
+                this.colors.push({ value, rgb })
+            }
+
+            setColors(colors) {
+                const n = colors.length
+                colors.forEach((color, i) => {
+                    const rgb = this.fromHexToRgb(color)
+                    this.addColor(i / (n - 1), rgb)
+                })
+            }
+
+            color(_value, min = 0, max = 1) {
+                const value = (_value - min) / (max - min)
+                if (value === 0) {
+                    return this.colors[0].rgb
+                }
+
+                // Get the 2 colors for whihc value is enclosed
+                const n = this.colors.length
+                let start = 0
+                for (let i = 0; i < n; ++i) {
+                    if (this.colors[i].value >= value) {
+                        start = i
+                        break
+                    }
+                }
+                if (start === n - 1) {
+                    return this.colors[n - 1].rgb
+                }
+
+                const c1 = this.colors[start]
+                const c2 = this.colors[start + 1]
+                const v = value - c1.value
+                return [
+                    this.linear(c1.rgb[0], c2.rgb[0], v),
+                    this.linear(c1.rgb[1], c2.rgb[1], v),
+                    this.linear(c1.rgb[2], c2.rgb[2], v)
+                ]
+            }
+
+            fromHexToRgb(c) {
+                const hex = c.replace("#", "")
+                const r = parseInt(hex.substring(0, 2), 16)
+                const g = parseInt(hex.substring(2, 4), 16)
+                const b = parseInt(hex.substring(4, 6), 16)
+                return [r, g, b]
+            }
+
+            linear(a, b, t) {
+                return a + t * b
+            }
+        }
+    </script>
+    <script>
+        const dataframe = window['@youwol/dataframe']
+        const math = window['@youwol/math']
+        const geom = window['@youwol/geometry']
+
+        let table = undefined
+
+        function setup() {
+            createCanvas(500, 500, WEBGL)
+            // perspective(PI / 3.0, width / height, 0.01, 500)
+            noStroke()
+            rectMode(CENTER)
+        }
+
+        // See https://editor.p5js.org/thibpat/sketches/DRViV1blJ
+        function draw() {
+            background(200)
+            scale(4.5) // Scaled to make model fit into canvas
+
+            const min = -3
+            const max = 10
+
+            df = laplace.solve({
+                name: 'P',
+                record: false,
+                step: 0
+            })
+
+            df.series.indices.forEach(p => {
+                if (df.series.P) {
+                    const P = df.series.P
+                    const p1 = df.series.positions.itemAt(p[0])
+                    const p2 = df.series.positions.itemAt(p[1])
+                    const p3 = df.series.positions.itemAt(p[2])
+
+                    const val = (P.itemAt(p[0]) + P.itemAt(p[1]) + P.itemAt(p[2])) / 3
+                    fill( table.color(val, min, max) )
+
+                    triangle(
+                        p1[0], p1[1],
+                        p2[0], p2[1],
+                        p3[0], p3[1]
+                    )
+                }
+            })
+        }
+
+        let df = geom.generateRectangle({ a: 100, b: 100, na: 50, nb: 50 })
+
+        const laplace = new geom.HarmonicDiffusion(
+            df.series.positions,
+            df.series.indices,
+            0,
+        )
+        // laplace.constrainsBorders(0)
+        for (let i = 0; i < 50; ++i) {
+            // laplace.addConstraint([-2 * i, 0, 0], 20)
+        }
+        laplace.addConstraint([0, 0, 0], 20)
+        laplace.addConstraint([-15, -20, 0], -1)
+        laplace.addConstraint([30, -20, 0], -3)
+        laplace.epsilon = 0.6
+        laplace.eps = 1e-7
+        laplace.maxIter = 50
+
+        table = new ColorScale()
+        table.setColors([
+            '#003627',
+            '#008A3B',
+            '#68BE0D',
+            '#D6DF00',
+            '#FAD000',
+            '#FFC010',
+            '#FFAE0E',
+            '#FF9B06',
+            '#FA5800',
+            '#E80008',
+            '#880003'
+        ])
+
+        df = laplace.solve({
+            name: 'P',
+            record: false,
+            step: 0
+        })
+
+    </script>
+
+    <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
+    <div>
+        <a href="https://github.com/xaliphostes/course-harmonic-diffusion/tree/main/src">Source</a>
+    </div>
+</body>
+
+</html>

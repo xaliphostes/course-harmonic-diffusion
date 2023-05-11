@@ -1,0 +1,20 @@
+{
+    "name": "course-harmonic-diffusion",
+    "version": "1.0.0",
+    "scripts": {
+        "serve": "browser-sync start --server -w"
+    },
+    "devDependencies": {
+        "@types/p5": "^1.6.0",
+        "browser-sync": "^2.26.12",
+        "npm-run-all": "^4.1.5",
+        "prettier": "^2.0.5",
+        "typescript": "5.0.4"
+    },
+    "dependencies": {
+        "@youwol/dataframe": "^0.0.38",
+        "@youwol/geometry": "^0.0.23",
+        "@youwol/math": "^0.0.27",
+        "p5": "^1.6.0"
+    }
+}
